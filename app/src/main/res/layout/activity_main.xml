@@ -19,6 +19,7 @@
         android:layout_below="@id/compatibility_state"
         android:layout_marginTop="32dp"
         android:text="Authenticate"
-        android:onClick="onLocalAuth"/>
+        android:onClick="onLocalAuth"
+        android:enabled="false"/>
 
 </RelativeLayout>

@@ -38,14 +38,16 @@ public final class CipherBuilder {
      * Returns a cipher, initialised with an encryption key, that can be used for fingerprint
      * authentication purposes.
      *
+     * @param cipherOpMode either #Cipher.ENCRYPT_MODE or #Cipher.DECRYPT_MODE depending on the
+     * intended purpose of the cipher
      * @return a cipher, initialised with an encryption key, that can be used for fingerprint
      * authentication purposes
      */
-    Cipher buildCipher() {
+    Cipher buildCipher(int cipherOpMode) {
         final KeyStore keyStore = getKeyStore();
         final SecretKey key = getOrGenerateEncryptionKey(keyStore);
 
-        return buildCipher(key);
+        return buildCipher(key, cipherOpMode);
     }
 
     // Returns a key store instance.
@@ -121,7 +123,7 @@ public final class CipherBuilder {
     }
 
     // Builds and initializes cipher with the input secret key.
-    private Cipher buildCipher(SecretKey key) {
+    private Cipher buildCipher(SecretKey key, int cipherOpMode) {
         Cipher cipher;
 
         try {
@@ -131,7 +133,7 @@ public final class CipherBuilder {
         }
 
         try {
-            cipher.init(Cipher.ENCRYPT_MODE, key);
+            cipher.init(cipherOpMode, key);
 
             return cipher;
         } catch (InvalidKeyException e) {

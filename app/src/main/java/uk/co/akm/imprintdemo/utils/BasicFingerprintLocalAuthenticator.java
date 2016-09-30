@@ -53,16 +53,27 @@ public final class BasicFingerprintLocalAuthenticator extends FingerprintManager
 
     @Override
     public boolean startAuthentication(Context context, AuthenticationListener listener) {
+        return startAuthentication(context, null, listener);
+    }
+
+    @Override
+    public boolean startAuthenticationForEncryption(Context context, AuthenticationListener listener) {
+        return startAuthentication(context, Cipher.ENCRYPT_MODE, listener);
+    }
+
+    @Override
+    public boolean startAuthenticationForDecryption(Context context, AuthenticationListener listener) {
+        return startAuthentication(context, Cipher.DECRYPT_MODE, listener);
+    }
+
+    private boolean startAuthentication(Context context, Integer cipherOpMode, AuthenticationListener listener) {
         // Checking permission again here because it might have changed since we last checked and to avoid Lint errors.
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
             return false;
         }
 
         final FingerprintManager fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
-        final FingerprintManager.CryptoObject cryptoObject = buildCryptoObject();
-        if (cryptoObject == null) {
-            return false;
-        }
+        final FingerprintManager.CryptoObject cryptoObject = (cipherOpMode == null ? null : buildCryptoObject(cipherOpMode));
 
         this.listener = listener;
         cancellationSignal = new CancellationSignal();
@@ -72,9 +83,9 @@ public final class BasicFingerprintLocalAuthenticator extends FingerprintManager
         return true;
     }
 
-    private FingerprintManager.CryptoObject buildCryptoObject() {
+    private FingerprintManager.CryptoObject buildCryptoObject(int cipherOpMode) {
         try {
-            final Cipher cipher = cipherBuilder.buildCipher();
+            final Cipher cipher = cipherBuilder.buildCipher(cipherOpMode);
 
             return new FingerprintManager.CryptoObject(cipher);
         } catch (Exception e) {

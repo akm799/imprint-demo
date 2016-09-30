@@ -133,7 +133,7 @@ public final class CipherBuilder {
         }
 
         try {
-            cipher.init(cipherOpMode, key);
+            cipher.init(cipherOpMode, key); //TODO need to pass IvParams when decrypting: http://stackoverflow.com/questions/33214469/issue-while-using-android-fingerprint-iv-required-when-decrypting-use-ivparame
 
             return cipher;
         } catch (InvalidKeyException e) {

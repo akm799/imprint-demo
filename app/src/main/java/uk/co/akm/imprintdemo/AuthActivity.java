@@ -16,7 +16,7 @@ import uk.co.akm.imprintdemo.utils.FingerprintLocalAuthenticator;
  * Fingerprint authentication activity. This activity performs fingerprint authentication
  * in order to grant (or not) the user access to the secure content.
  */
-public class LocalAuthActivity extends AppCompatActivity implements AuthenticationListener {
+public class AuthActivity extends AppCompatActivity implements AuthenticationListener {
     private TextView state;
 
     private final FingerprintLocalAuthenticator authenticator = FingerprintAuthenticatorFactory.localAuthenticatorInstance();
@@ -24,7 +24,7 @@ public class LocalAuthActivity extends AppCompatActivity implements Authenticati
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_local_auth);
+        setContentView(R.layout.activity_auth);
 
         state = (TextView)findViewById(R.id.auth_state);
     }

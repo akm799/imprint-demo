@@ -21,13 +21,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final View localAuthBtn = findViewById(R.id.local_auth_btn);
+        final View authBtn = findViewById(R.id.auth_btn);
+        final View authCryptoBtn = findViewById(R.id.auth_crypto_btn);
         final TextView state = (TextView)findViewById(R.id.compatibility_state);
 
-        setInitialState(state, localAuthBtn);
+        setInitialState(state, authBtn, authCryptoBtn);
     }
 
-    private void setInitialState(TextView state, View localAuthButton) {
+    private void setInitialState(TextView state, View... authButtons) {
         final FingerprintLocalAuthenticator authenticator = FingerprintAuthenticatorFactory.localAuthenticatorInstance();
         switch (authenticator.canAuthenticate(this)) {
             case ERR_SDK_TOO_OLD:
@@ -52,14 +53,20 @@ public class MainActivity extends AppCompatActivity {
 
             case OK:
                 state.setText("Fingerprint authentication can proceed.");
-                localAuthButton.setEnabled(true);
+                for (View btn : authButtons) {
+                    btn.setEnabled(true);
+                }
                 break;
 
             default:
         }
     }
 
-    public void onLocalAuth(View view) {
-        startActivity(new Intent(this, LocalAuthActivity.class));
+    public void onAuth(View view) {
+        startActivity(new Intent(this, AuthActivity.class));
+    }
+
+    public void onAuthForCrypto(View view) {
+        startActivity(new Intent(this, AuthCryptoActivity.class));
     }
 }

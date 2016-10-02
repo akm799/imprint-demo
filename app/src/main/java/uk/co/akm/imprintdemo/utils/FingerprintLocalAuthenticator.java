@@ -62,10 +62,11 @@ public interface FingerprintLocalAuthenticator {
      * decryption.
      *
      * @param context the context required to obtain and use the necessary services
+     * @param iv the initialization vector used when encrypting the data that we wish to decrypt
      * @param listener the listener that will be informed of the authentication process result
      * @return true if the authentication process was started or false otherwise
      */
-    boolean startAuthenticationForDecryption(Context context, AuthenticationListener listener);
+    boolean startAuthenticationForDecryption(Context context, byte[] iv, AuthenticationListener listener);
 
     /**
      * Stops the (already running) fingerprint authetication process. Usually called, from the

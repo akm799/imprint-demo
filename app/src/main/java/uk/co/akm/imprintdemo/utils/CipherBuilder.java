@@ -17,6 +17,7 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 /**
  * Builds a cipher, initialised with an encryption key, that can be used for fingerprint
@@ -35,19 +36,29 @@ public final class CipherBuilder {
     }
 
     /**
-     * Returns a cipher, initialised with an encryption key, that can be used for fingerprint
-     * authentication purposes.
+     * Returns a cipher that can be used to encrypt data.
      *
-     * @param cipherOpMode either #Cipher.ENCRYPT_MODE or #Cipher.DECRYPT_MODE depending on the
-     * intended purpose of the cipher
-     * @return a cipher, initialised with an encryption key, that can be used for fingerprint
-     * authentication purposes
+     * @return a cipher that can be used to encrypt data
      */
-    Cipher buildCipher(int cipherOpMode) {
+    Cipher buildEncryptionCipher() {
+        return buildCipher(null);
+    }
+
+    /**
+     * Returns a cipher that can be used to decrypt data.
+     *
+     * @param iv the initialization vector used when encrypting the data that we wish to decrypt
+     * @return a cipher that can be used to decrypt data
+     */
+    Cipher buildDecryptionCipher(byte[] iv) {
+        return buildCipher(null);
+    }
+
+    private Cipher buildCipher(byte[] iv) {
         final KeyStore keyStore = getKeyStore();
         final SecretKey key = getOrGenerateEncryptionKey(keyStore);
 
-        return buildCipher(key, cipherOpMode);
+        return buildCipher(key, iv);
     }
 
     // Returns a key store instance.
@@ -123,7 +134,7 @@ public final class CipherBuilder {
     }
 
     // Builds and initializes cipher with the input secret key.
-    private Cipher buildCipher(SecretKey key, int cipherOpMode) {
+    private Cipher buildCipher(SecretKey key, byte[] iv) {
         Cipher cipher;
 
         try {
@@ -133,10 +144,15 @@ public final class CipherBuilder {
         }
 
         try {
-            cipher.init(cipherOpMode, key); //TODO need to pass IvParams when decrypting: http://stackoverflow.com/questions/33214469/issue-while-using-android-fingerprint-iv-required-when-decrypting-use-ivparame
+            if (iv == null) {
+                cipher.init(Cipher.ENCRYPT_MODE, key);
+            } else {
+                final IvParameterSpec ivSpec = new IvParameterSpec(iv);
+                cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);
+            }
 
             return cipher;
-        } catch (InvalidKeyException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to initialize Cipher", e);
         }
     }

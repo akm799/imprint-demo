@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.hardware.fingerprint.FingerprintManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Base64;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -25,8 +24,7 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
     private TextView cipherTextView;
     private EditText plainTextView;
 
-    private String plainText;
-    private byte[] cipherText;
+    private CryptoString cryptoString;
 
     private FingerprintLocalAuthenticator authenticator;
 
@@ -39,20 +37,19 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
         cipherTextView = (TextView)findViewById(R.id.cipher_text);
         plainTextView = (EditText) findViewById(R.id.plain_text);
 
-        final String cipherTextStr = readCipherText();
-        if (cipherTextStr != null) {
-            allowDecryptOption(cipherTextStr);
+        cryptoString = readCipherText();
+        if (cryptoString != null) {
+            allowDecryptOption(cryptoString.getCipherText());
         }
     }
 
-    private String readCipherText() {
+    private CryptoString readCipherText() {
         final SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        final String cypherTextStr = prefs.getString(CIPHER_TEXT_KEY, null);
-        if (cypherTextStr != null) {
-            cipherText = Base64.decode(cypherTextStr, Base64.DEFAULT);
+        if (prefs.contains(CIPHER_TEXT_KEY)) {
+            return new CryptoString(prefs, CIPHER_TEXT_KEY);
+        } else {
+            return null;
         }
-
-        return cypherTextStr;
     }
 
     private void allowDecryptOption(String cipherTextStr) {
@@ -81,11 +78,12 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
     }
 
     public void onEncrypt(View view) {
-        plainText = plainTextView.getText().toString().trim();
+        final String plainText = plainTextView.getText().toString().trim();
         if (plainText.isEmpty()) {
-            plainText = null;
             Toast.makeText(this, "Nothing to encrypt", Toast.LENGTH_SHORT).show();
         } else {
+            cryptoString = new CryptoString(plainText);
+
             plainTextView.setEnabled(false);
             state.setText("Touch fingerptint sensor to encrypt");
 
@@ -95,13 +93,12 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
     }
 
     public void onDecrypt(View view) {
-        plainText = null;
         plainTextView.setText("");
         plainTextView.setEnabled(false);
         state.setText("Touch fingerptint sensor to decrypt");
 
         authenticator = FingerprintAuthenticatorFactory.localAuthenticatorInstance();
-        authenticator.startAuthenticationForDecryption(this, this);
+        authenticator.startAuthenticationForDecryption(this, cryptoString.getIv(), this);
     }
 
     @Override
@@ -117,60 +114,31 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
     @Override
     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
         authenticator = null;
-        if (plainText == null) {
-            decrypt(result);
-        } else {
-            encrypt(result);
-        }
-    }
-
-    private void encrypt(FingerprintManager.AuthenticationResult result) {
-        plainTextView.setEnabled(true);
-        encrypt(plainText, result.getCryptoObject().getCipher());
-    }
-
-    private void encrypt(String plainText, Cipher cipher) {
-        try {
-            cipherText = cipher.doFinal(plainText.getBytes());
-            final String cypherTextStr = storeCipherText(cipherText);
-            if (cypherTextStr != null) {
-                allowDecryptOption(cypherTextStr);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Failed to encrypt plaintext", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private String storeCipherText(byte[] cipherText) {
-        final String cypherTextStr = Base64.encodeToString(cipherText, Base64.DEFAULT);
-        final SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putString(CIPHER_TEXT_KEY, cypherTextStr).commit();
-
-        return cypherTextStr;
-    }
-
-    private void decrypt(FingerprintManager.AuthenticationResult result) {
-        if (result != null) {
-            Toast.makeText(this, "Under construction", Toast.LENGTH_SHORT).show();
+        if (cryptoString == null) {
             return;
         }
 
-        final String plainText = decrypt(cipherText, result.getCryptoObject().getCipher());
-        plainTextView.setText(plainText);
+        final Cipher cipher = result.getCryptoObject().getCipher();
+        if (cryptoString.readyToEncrypt()) {
+            encrypt(cipher);
+        } else {
+            decrypt(cipher);
+        }
+    }
+
+    private void encrypt(Cipher cipher) {
+        final SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        cryptoString.encrypt(cipher);
+        cryptoString.store(prefs, CIPHER_TEXT_KEY);
+        allowDecryptOption(cryptoString.getCipherText());
+
         plainTextView.setEnabled(true);
     }
 
-    private String decrypt(byte[] cipherText, Cipher cipher) {
-        try {
-            final byte[] plainText = cipher.doFinal(cipherText);
-
-            return Base64.encodeToString(plainText, Base64.DEFAULT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Failed to encrypt plaintext", Toast.LENGTH_SHORT).show();
-            return null;
-        }
+    private void decrypt(Cipher cipher) {
+        cryptoString.decrypt(cipher);
+        plainTextView.setText(cryptoString.toString());
+        plainTextView.setEnabled(true);
     }
 
     @Override

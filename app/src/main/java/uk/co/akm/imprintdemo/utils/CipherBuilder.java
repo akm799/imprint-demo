@@ -51,7 +51,7 @@ public final class CipherBuilder {
      * @return a cipher that can be used to decrypt data
      */
     Cipher buildDecryptionCipher(byte[] iv) {
-        return buildCipher(null);
+        return buildCipher(iv);
     }
 
     private Cipher buildCipher(byte[] iv) {

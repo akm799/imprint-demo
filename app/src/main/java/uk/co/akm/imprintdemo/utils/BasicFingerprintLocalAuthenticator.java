@@ -66,6 +66,10 @@ public final class BasicFingerprintLocalAuthenticator extends FingerprintManager
         return startAuthentication(context, iv, listener);
     }
 
+    // Initialization vector byte array is used to identify 3 cases:
+    // null     : no encryption or decryption required.
+    // empty    : encryption operation after authentication.
+    // non-empty: decryption operation after authentication.
     private boolean startAuthentication(Context context, byte[] iv, AuthenticationListener listener) {
         // Checking permission again here because it might have changed since we last checked and to avoid Lint errors.
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {

@@ -16,6 +16,17 @@ import uk.co.akm.imprintdemo.utils.AuthenticationListener;
 import uk.co.akm.imprintdemo.utils.FingerprintAuthenticatorFactory;
 import uk.co.akm.imprintdemo.utils.FingerprintLocalAuthenticator;
 
+/**
+ * Demo activity of fingerptint authentication with a subsequent cryptographic operation.
+ *
+ * If the user enters some plain-text in the edit text and chooses the 'encrypt' option, then,
+ * after successful fingerprint authorisation, the entered plain-text will be encrypted and
+ * stored in the shared preferences.
+ *
+ * If an encrypted plain-text has already been stored and the user chooses the decrypt option,
+ * then, after successful fingerprint authorisation, the stored cipher-text will be decrypted
+ * and displayed.
+ */
 public class AuthCryptoActivity extends AppCompatActivity implements AuthenticationListener {
     private static final String PREFS_NAME = "uk.co.akm.imprintdemo.prefs";
     private static final String CIPHER_TEXT_KEY = "cipher.text.store.key";
@@ -36,6 +47,11 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
         state = (TextView)findViewById(R.id.auth_state);
         cipherTextView = (TextView)findViewById(R.id.cipher_text);
         plainTextView = (EditText) findViewById(R.id.plain_text);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         cryptoString = readCipherText();
         if (cryptoString != null) {
@@ -62,21 +78,24 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
     protected void onPause() {
         super.onPause();
 
-        if (authenticator != null) {
-            authenticator.stopAuthentication();
-        }
+        stopAuthentication();
+        cryptoString = null;
     }
 
     // Authentication process cancelled manually by the user.
     public void onCancel(View view) {
+        stopAuthentication();
+        finish();
+    }
+
+    private void stopAuthentication() {
         if (authenticator != null) {
             authenticator.stopAuthentication();
             authenticator = null;
         }
-
-        finish();
     }
 
+    // The user pressed the encrypt button (after hopefully, entering something to be encrypted).
     public void onEncrypt(View view) {
         final String plainText = plainTextView.getText().toString().trim();
         if (plainText.isEmpty()) {
@@ -85,18 +104,21 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
             cryptoString = new CryptoString(plainText);
 
             plainTextView.setEnabled(false);
-            state.setText("Touch fingerptint sensor to encrypt");
+            state.setText("Touch fingerprint sensor to encrypt");
 
+            // Start listening for fingerprint authentication so then we can encrypt.
             authenticator = FingerprintAuthenticatorFactory.localAuthenticatorInstance();
             authenticator.startAuthenticationForEncryption(this, this);
         }
     }
 
+    // The user pressed the decrypt button.
     public void onDecrypt(View view) {
         plainTextView.setText("");
         plainTextView.setEnabled(false);
-        state.setText("Touch fingerptint sensor to decrypt");
+        state.setText("Touch fingerprint sensor to decrypt");
 
+        // Start listening for fingerprint authentication so then we can decrypt.
         authenticator = FingerprintAuthenticatorFactory.localAuthenticatorInstance();
         authenticator.startAuthenticationForDecryption(this, cryptoString.getIv(), this);
     }
@@ -119,9 +141,9 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
         }
 
         final Cipher cipher = result.getCryptoObject().getCipher();
-        if (cryptoString.readyToEncrypt()) {
+        if (cryptoString.readyToEncrypt()) { // fingerprint authenticated after ENCRYPT button was pressed.
             encrypt(cipher);
-        } else {
+        } else { // fingerprint authenticated after DECRYPT button was pressed.
             decrypt(cipher);
         }
     }
@@ -130,15 +152,16 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
         final SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         cryptoString.encrypt(cipher);
         cryptoString.store(prefs, CIPHER_TEXT_KEY);
-        allowDecryptOption(cryptoString.getCipherText());
 
-        plainTextView.setEnabled(true);
+        AfterAuthActivity.startAfterAuthActivity(this, true, cryptoString.getCipherText());
+        finish();
     }
 
     private void decrypt(Cipher cipher) {
         cryptoString.decrypt(cipher);
-        plainTextView.setText(cryptoString.toString());
-        plainTextView.setEnabled(true);
+
+        AfterAuthActivity.startAfterAuthActivity(this, false, cryptoString.toString());
+        finish();
     }
 
     @Override

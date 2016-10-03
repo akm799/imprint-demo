@@ -10,9 +10,10 @@
     tools:context="uk.co.akm.imprintdemo.AfterAuthActivity">
 
     <TextView
+        android:id="@+id/auth_result"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:textSize="32sp"
+        android:textSize="28sp"
         android:text="Authorisation Successful"/>
 </RelativeLayout>

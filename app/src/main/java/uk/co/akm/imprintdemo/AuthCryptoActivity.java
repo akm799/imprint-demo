@@ -135,7 +135,8 @@ public class AuthCryptoActivity extends AppCompatActivity implements Authenticat
 
     @Override
     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-        authenticator = null;
+        stopAuthentication();
+
         if (cryptoString == null) {
             return;
         }

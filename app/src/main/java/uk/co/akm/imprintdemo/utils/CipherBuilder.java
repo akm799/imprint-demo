@@ -110,7 +110,7 @@ public final class CipherBuilder {
             final int keyPurposes = (KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);
             final KeyGenParameterSpec.Builder keyGenSpecBuilder = new KeyGenParameterSpec.Builder(keyName, keyPurposes);
             keyGenSpecBuilder.setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                    .setUserAuthenticationRequired(true)
+                    .setUserAuthenticationRequired(true) // This means that the resulting cipher cannot be used before some kind of user authentication takes place.
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7);
 
             keyStore.load(null);

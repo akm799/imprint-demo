@@ -49,9 +49,9 @@ public class AfterAuthActivity extends AppCompatActivity {
     private void showMessage(boolean encrypted, String cryptoText) {
         final TextView authResult = (TextView)findViewById(R.id.auth_result);
         if (encrypted) {
-            authResult.setText("Authentication successful.\nYour text was encrypted and stored as:\n'" + cryptoText + "'");
+            authResult.setText("Authentication successful.\n\nYour text was encrypted and stored as:\n\n" + cryptoText);
         } else {
-            authResult.setText("Authentication successful.\nYour stored, encrypted text was decrypted as:\n" + cryptoText);
+            authResult.setText("Authentication successful.\n\nYour stored, encrypted text was decrypted as:\n\n" + cryptoText);
         }
     }
 }

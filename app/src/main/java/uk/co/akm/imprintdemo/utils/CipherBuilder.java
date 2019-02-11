@@ -5,11 +5,9 @@ import android.security.keystore.KeyProperties;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
@@ -25,8 +23,7 @@ import javax.crypto.spec.IvParameterSpec;
  *
  * Created by thanosmavroidis on 18/09/2016.
  */
-public final class CipherBuilder {
-    private static final String KEY_STORE_PROVIDER = "AndroidKeyStore";
+public final class CipherBuilder extends KeyStoreProvider {
     private static final String KEY_NAME_PREFIX = "local_fingerprint_data_encryption_key.";
 
     private final String keyName;
@@ -61,50 +58,18 @@ public final class CipherBuilder {
         return buildCipher(key, iv);
     }
 
-    // Returns a key store instance.
-    private KeyStore getKeyStore() {
-        try {
-            return KeyStore.getInstance(KEY_STORE_PROVIDER);
-        } catch (KeyStoreException e) {
-            throw new RuntimeException("Failed to get a KeyStore instance of type: " + KEY_STORE_PROVIDER, e);
-        }
-    }
-
     // Returns an encryption key to be used for our fingerprint authentication
     private SecretKey getOrGenerateEncryptionKey(KeyStore keyStore) {
-        if (keyNotGenerated(keyStore)) {
+        if (keyNotGenerated(keyStore, keyName)) {
             generateEncryptionKey(keyStore);
         }
 
         return getEncryptionKey(keyStore);
     }
 
-    /**
-     * Returns true if the encryption key exists in the key store (i.e. it has already been
-     * generated) or false otherwise.
-     *
-     * @param keyStore the key store to check for the encryption key
-     * @return true if the encryption key exists in the key store (i.e. it has already been
-     * generated) or false otherwise
-     */
-    private boolean keyNotGenerated(KeyStore keyStore) {
-        try {
-            keyStore.load(null);
-            return !(keyStore.containsAlias(keyName));
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-            throw new RuntimeException("Failed to check the KeyStore for key: " + keyName, e);
-        }
-    }
-
     // Generates an encryption key for our fingerprint authentication.
     private void generateEncryptionKey(KeyStore keyStore) {
-        KeyGenerator keyGenerator;
-
-        try {
-            keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEY_STORE_PROVIDER);
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new RuntimeException("Failed to get KeyGenerator instance", e);
-        }
+        final KeyGenerator keyGenerator = getKeyGenerator(KeyProperties.KEY_ALGORITHM_AES);
 
         try {
             final int keyPurposes = (KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);

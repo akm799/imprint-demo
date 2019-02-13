@@ -8,6 +8,8 @@ import java.security.KeyStore;
 import java.security.spec.ECGenParameterSpec;
 
 /**
+ * https://android-developers.googleblog.com/2015/10/new-in-android-samples-authenticating.html
+ * 
  * Created by thanosmavroidis on 02/11/2019.
  */
 public final class KeyPairFunctions extends KeyStoreProvider {

@@ -62,4 +62,16 @@ class KeyStoreProvider {
             throw new RuntimeException("Failed to check the KeyStore for key: " + keyName, e);
         }
     }
+
+    // Returns a key store instance with all key information loaded.
+    final KeyStore loadKeyStore() {
+        try {
+            final KeyStore keyStore = getKeyStore();
+            keyStore.load(null);
+
+            return keyStore;
+        } catch (IOException | NoSuchAlgorithmException | CertificateException e) {
+            throw new RuntimeException("Failed to load the KeyStore.", e);
+        }
+    }
 }

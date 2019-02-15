@@ -10,6 +10,8 @@ import android.os.CancellationSignal;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import java.security.Signature;
+
 import javax.crypto.Cipher;
 
 /**
@@ -22,9 +24,11 @@ public final class BasicFingerprintLocalAuthenticator extends FingerprintManager
     private CancellationSignal cancellationSignal;
 
     private final CipherBuilder cipherBuilder;
+    private final KeyPairFunctions keyPairFunctions;
 
     BasicFingerprintLocalAuthenticator(String userKeyName) {
         cipherBuilder = new CipherBuilder(userKeyName);
+        keyPairFunctions = new KeyPairFunctions(userKeyName);
     }
 
     public Compatibility canAuthenticate(Context context) {
@@ -58,26 +62,33 @@ public final class BasicFingerprintLocalAuthenticator extends FingerprintManager
 
     @Override
     public boolean startAuthenticationForEncryption(Context context, AuthenticationListener listener) {
-        return startAuthentication(context, new byte[0], listener);
+        final FingerprintManager.CryptoObject cryptoObject = buildCryptoObject(new byte[0]);
+
+        return startAuthentication(context, cryptoObject, listener);
     }
 
     @Override
     public boolean startAuthenticationForDecryption(Context context, byte[] iv, AuthenticationListener listener) {
-        return startAuthentication(context, iv, listener);
+        final FingerprintManager.CryptoObject cryptoObject = buildCryptoObject(iv);
+
+        return startAuthentication(context, cryptoObject, listener);
     }
 
-    // Initialization vector byte array is used to identify 3 cases:
-    // null     : no encryption or decryption required.
-    // empty    : encryption operation after authentication.
-    // non-empty: decryption operation after authentication.
-    private boolean startAuthentication(Context context, byte[] iv, AuthenticationListener listener) {
+    @Override
+    public boolean startAuthenticationForRemoteAuthentication(Context context, AuthenticationListener listener) {
+        final Signature signature = keyPairFunctions.getSignatureInstance();
+        final FingerprintManager.CryptoObject cryptoObject = new FingerprintManager.CryptoObject(signature);
+
+        return startAuthentication(context, cryptoObject, listener);
+    }
+
+    private boolean startAuthentication(Context context, FingerprintManager.CryptoObject cryptoObject, AuthenticationListener listener) {
         // Checking permission again here because it might have changed since we last checked and to avoid Lint errors.
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
             return false;
         }
 
         final FingerprintManager fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
-        final FingerprintManager.CryptoObject cryptoObject = (iv == null ? null : buildCryptoObject(iv));
 
         this.listener = listener;
         cancellationSignal = new CancellationSignal();

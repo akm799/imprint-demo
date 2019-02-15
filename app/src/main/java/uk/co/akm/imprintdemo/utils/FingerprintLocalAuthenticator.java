@@ -43,7 +43,7 @@ public interface FingerprintLocalAuthenticator {
 
     /**
      * Starts the fingerprint authentication process, with a subsequent encryption option, and
-     * returns true or just returns false otherwise. If the fingerpring authentication succeeds
+     * returns true or just returns false otherwise. If the fingerprint authentication succeeds
      * then calling the #FingerprintManager.AuthenticationResult.getCryptoObject().getCipher()
      * on the returned result (from the callback) will return a #Cipher instance that is set for
      * encryption.
@@ -56,7 +56,7 @@ public interface FingerprintLocalAuthenticator {
 
     /**
      * Starts the fingerprint authentication process, with a subsequent decryption option, and
-     * returns true or just returns false otherwise. If the fingerpring authentication succeeds
+     * returns true or just returns false otherwise. If the fingerprint authentication succeeds
      * then calling the #FingerprintManager.AuthenticationResult.getCryptoObject().getCipher()
      * on the returned result (from the callback) will return a #Cipher instance that is set for
      * decryption.
@@ -67,6 +67,19 @@ public interface FingerprintLocalAuthenticator {
      * @return true if the authentication process was started or false otherwise
      */
     boolean startAuthenticationForDecryption(Context context, byte[] iv, AuthenticationListener listener);
+
+    /**
+     * Starts the fingerprint authentication process, with a subsequent option of signing a message
+     * for the purpose of authenticating with a remote server. If the fingerprint authentication succeeds
+     * then calling the #FingerprintManager.AuthenticationResult.getCryptoObject().getSignature() on
+     * the returned result (from the callback) will return a #Signature instance that is can be used
+     * to sign a message for the purpose of authenticating with a remote server.
+     *
+     * @param context the context required to obtain and use the necessary services
+     * @param listener the listener that will be informed of the authentication process result
+     * @return true if the authentication process was started or false otherwise
+     */
+    boolean startAuthenticationForRemoteAuthentication(Context context, AuthenticationListener listener);
 
     /**
      * Stops the (already running) fingerprint authetication process. Usually called, from the

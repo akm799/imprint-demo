@@ -9,6 +9,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
 
 import uk.co.akm.imprintdemo.server.InMemoryRemoteServer;
 import uk.co.akm.imprintdemo.server.RemoteServer;
@@ -64,26 +66,59 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     }
 
     private void authenticate(String username) {
-        //TODO
+        authenticator.startAuthenticationForRemoteAuthentication(this, this);
+    }
+
+    // Authentication process cancelled manually by the user.
+    public void onCancel(View view) {
+        stopAuthentication();
+        finish();
+    }
+
+    private void stopAuthentication() {
+        authenticator.stopAuthentication();
+        authState.setVisibility(View.INVISIBLE);
     }
 
     @Override
     public void onAuthenticationError(int errorCode, CharSequence errString) {
-
+        Toast.makeText(this, "Authentication Error\n" + errString, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-
+        Toast.makeText(this, "Authentication Help\n" + helpString, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+        stopAuthentication();
 
+        final byte[] message = server.getAuthenticationMessageToSign();
+        final byte[] signature = signMessage(result.getCryptoObject().getSignature(), message);
+
+        if (signature == null) {
+            Toast.makeText(this, "Could not sign server message.", Toast.LENGTH_LONG).show();
+        } else {
+            if (server.authenticate(message, signature)) {
+                //TODO
+            } else {
+                Toast.makeText(this, "Access Denied.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private byte[] signMessage(Signature signature, byte[] message) {
+        try {
+            signature.update(message);
+            return signature.sign();
+        } catch (SignatureException e) {
+            return null;
+        }
     }
 
     @Override
     public void onAuthenticationFailed() {
-
+        Toast.makeText(this, "Authentication Failed", Toast.LENGTH_SHORT).show();
     }
 }

@@ -10,13 +10,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import uk.co.akm.imprintdemo.key.KeySerializer;
+import uk.co.akm.imprintdemo.key.KeySerializerFactory;
+
 public final class InMemoryRemoteServer implements RemoteServer {
     private static final int MESSAGE_LENGTH = 512;
     private static final String SIGNATURE_ALGORITHM = "SHA256withECDSA";
 
+    private final KeySerializer keySerializer = KeySerializerFactory.instance();
+
     private final Random random = new SecureRandom();
     private final Map<String, PublicKey> users = new HashMap<>();
     private final Map<String, byte[]> messages = new HashMap<>();
+
+    @Override
+    public void registerPublicKey(String username, String publicKeyData) throws ServerException {
+        final PublicKey publicKey = keySerializer.deserialize(publicKeyData);
+        registerPublicKey(username, publicKey);
+    }
 
     @Override
     public void registerPublicKey(String username, PublicKey publicKey) throws ServerException {

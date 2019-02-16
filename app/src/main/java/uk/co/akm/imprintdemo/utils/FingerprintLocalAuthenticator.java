@@ -2,6 +2,8 @@ package uk.co.akm.imprintdemo.utils;
 
 import android.content.Context;
 
+import java.security.PublicKey;
+
 /**
  * This interface contains all methods required by the application to use local fingerprint
  * authentication.
@@ -67,6 +69,8 @@ public interface FingerprintLocalAuthenticator {
      * @return true if the authentication process was started or false otherwise
      */
     boolean startAuthenticationForDecryption(Context context, byte[] iv, AuthenticationListener listener);
+
+    PublicKey generateKeyPairForRemoteAuthentication();
 
     /**
      * Starts the fingerprint authentication process, with a subsequent option of signing a message

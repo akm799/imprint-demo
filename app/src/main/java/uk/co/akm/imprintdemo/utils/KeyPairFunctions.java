@@ -18,21 +18,34 @@ import java.security.spec.ECGenParameterSpec;
  * 
  * Created by thanosmavroidis on 02/11/2019.
  */
-public final class KeyPairFunctions extends KeyStoreProvider {
+final class KeyPairFunctions extends KeyStoreProvider {
     private static final String SIGNATURE_ALGORITHM = "SHA256withECDSA";
     private static final String KEY_PAIR_NAME_PREFIX = "local_fingerprint_verification_key_pair.asymmetric.";
 
     private final String keyPairName;
 
-    public KeyPairFunctions(String appKeyName) {
+    KeyPairFunctions(String appKeyName) {
         this.keyPairName = (KEY_PAIR_NAME_PREFIX + appKeyName);
-        generateKeyPairIfNoneExists(getKeyStore());
     }
 
-    // Generates a key pair for asymmetric encryption, if not already generated.
+    PublicKey getOrGeneratePublicKey() {
+        final KeyStore keyStore = getKeyStore();
+        generateKeyPairIfNoneExists(keyStore);
+
+        return readGeneratedPublicKey(keyStore);
+    }
+
     private void generateKeyPairIfNoneExists(KeyStore keyStore) {
         if (keyNotGenerated(keyStore, keyPairName)) {
             generateKeyPair(keyPairName);
+        }
+    }
+
+    private PublicKey readGeneratedPublicKey(KeyStore keyStore) {
+        try {
+            return keyStore.getCertificate(keyPairName).getPublicKey();
+        } catch (KeyStoreException e) {
+            throw new RuntimeException("Failed to get the public key from the generated key-pair: " + keyPairName, e);
         }
     }
 
@@ -45,22 +58,12 @@ public final class KeyPairFunctions extends KeyStoreProvider {
                             KeyProperties.PURPOSE_SIGN)
                             .setDigests(KeyProperties.DIGEST_SHA256)
                             .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
-                            .setUserAuthenticationRequired(true)
+                            .setUserAuthenticationRequired(true) // Require hardware (e.g. fingerprint) authentication to generate the key-pair.
                             .build());
 
             keyPairGenerator.generateKeyPair();
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate key pair.", e);
-        }
-    }
-
-    PublicKey getPublicKey() {
-        final KeyStore keyStore =loadKeyStore();
-
-        try {
-            return keyStore.getCertificate(keyPairName).getPublicKey();
-        } catch (KeyStoreException e) {
-            throw new RuntimeException("Failed to get the public key from key-pair: " + keyPairName, e);
         }
     }
 

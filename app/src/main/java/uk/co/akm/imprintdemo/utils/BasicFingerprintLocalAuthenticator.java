@@ -10,6 +10,7 @@ import android.os.CancellationSignal;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import java.security.PublicKey;
 import java.security.Signature;
 
 import javax.crypto.Cipher;
@@ -72,6 +73,11 @@ public final class BasicFingerprintLocalAuthenticator extends FingerprintManager
         final FingerprintManager.CryptoObject cryptoObject = buildCryptoObject(iv);
 
         return startAuthentication(context, cryptoObject, listener);
+    }
+
+    @Override
+    public PublicKey generateKeyPairForRemoteAuthentication() {
+        return keyPairFunctions.getOrGeneratePublicKey();
     }
 
     @Override

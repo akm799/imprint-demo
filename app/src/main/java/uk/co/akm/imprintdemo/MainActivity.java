@@ -23,9 +23,10 @@ public class MainActivity extends AppCompatActivity {
 
         final View authBtn = findViewById(R.id.auth_btn);
         final View authCryptoBtn = findViewById(R.id.auth_crypto_btn);
+        final View authAsymmetricBtn = findViewById(R.id.auth_asymmetric_btn);
         final TextView state = (TextView)findViewById(R.id.compatibility_state);
 
-        setInitialState(state, authBtn, authCryptoBtn);
+        setInitialState(state, authBtn, authCryptoBtn, authAsymmetricBtn);
     }
 
     private void setInitialState(TextView state, View... authButtons) {
@@ -68,5 +69,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void onAuthForCrypto(View view) {
         startActivity(new Intent(this, AuthCryptoActivity.class));
+    }
+
+    public void onAuthForAsymmetric(View view) {
+        startActivity(new Intent(this, AuthAsymmetricActivity.class));
     }
 }

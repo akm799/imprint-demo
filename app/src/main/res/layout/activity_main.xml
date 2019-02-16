@@ -31,4 +31,15 @@
         android:text="Authenticate for Crypto"
         android:onClick="onAuthForCrypto"
         android:enabled="false"/>
+
+    <Button
+        android:id="@+id/auth_asymmetric_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/auth_crypto_btn"
+        android:layout_marginTop="32dp"
+        android:text="Authenticate with Server"
+        android:onClick="onAuthForAsymmetric"
+        android:enabled="false"/>
+
 </RelativeLayout>

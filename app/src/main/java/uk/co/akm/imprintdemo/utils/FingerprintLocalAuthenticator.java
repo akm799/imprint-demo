@@ -70,6 +70,12 @@ public interface FingerprintLocalAuthenticator {
      */
     boolean startAuthenticationForDecryption(Context context, byte[] iv, AuthenticationListener listener);
 
+    /**
+     * Generates an asymmetric encryption key pair and returns the public key. This key can then be
+     * used to sign a verification message for the purpose of authentication with a remote server.
+     *
+     * @return the public key from the generated key pair
+     */
     PublicKey generateKeyPairForRemoteAuthentication();
 
     /**

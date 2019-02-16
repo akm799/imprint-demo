@@ -82,64 +82,90 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
     private void stopAuthentication() {
         authenticator.stopAuthentication();
+        authenticationStopped();
+    }
+
+    private void authenticationStopped() {
+        username = null;
         authState.setVisibility(View.INVISIBLE);
     }
 
     @Override
-    public void onAuthenticationError(int errorCode, CharSequence errString) {
+    public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+        authState.setVisibility(View.INVISIBLE);
+        authenticatedWithServer(result.getCryptoObject().getSignature());
         this.username = null;
+    }
+
+    private void authenticatedWithServer(Signature signatureFunction) {
+        final byte[] message = getAuthenticationMessageFromServer(username);
+        if (message != null) {
+            authenticatedWithServer(username, message, signatureFunction);
+        }
+    }
+
+    private byte[] getAuthenticationMessageFromServer(String username) {
+        try {
+            return server.getAuthenticationMessageToSign(username);
+        } catch (ServerException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            return null;
+        }
+    }
+
+    private void authenticatedWithServer(String username, byte[] message, Signature signatureFunction) {
+        final byte[] signature = signMessage(signatureFunction, message);
+
+        if (signature == null) {
+            Toast.makeText(this, "Could not sign server message.", Toast.LENGTH_LONG).show();
+        } else {
+            authenticatedWithServer(username, message, signature);
+        }
+    }
+
+    private byte[] signMessage(Signature signatureFunction, byte[] message) {
+        try {
+            signatureFunction.update(message);
+            return signatureFunction.sign();
+        } catch (SignatureException e) {
+            Log.e(getClass().getSimpleName(), "Signature Error", e);
+            return null;
+        }
+    }
+
+    private void authenticatedWithServer(String username, byte[] message, byte[] signature) {
+        try {
+            if (server.authenticate(username, message, signature)) {
+                onRemoteAuthenticationComplete();
+            } else {
+                Toast.makeText(this, "Access Denied.", Toast.LENGTH_SHORT).show();
+            }
+        } catch (ServerException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void onRemoteAuthenticationComplete() {
+        Log.d(getClass().getSimpleName(), "User authenticated with remote server.");
+        startActivity(new Intent(this, AfterAuthActivity.class)); // Go to the secure content.
+        finish();
+    }
+
+    @Override
+    public void onAuthenticationError(int errorCode, CharSequence errString) {
+        authenticationStopped();
         Toast.makeText(this, "Authentication Error\n" + errString, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-        this.username = null;
+        authenticationStopped();
         Toast.makeText(this, "Authentication Help\n" + helpString, Toast.LENGTH_LONG).show();
     }
 
     @Override
-    public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-        stopAuthentication();
-
-        final byte[] message = server.getAuthenticationMessageToSign();
-        final byte[] signature = signMessage(result.getCryptoObject().getSignature(), message);
-
-        if (signature == null) {
-            Toast.makeText(this, "Could not sign server message.", Toast.LENGTH_LONG).show();
-        } else {
-            if (authenticatedWithServer(username, message, signature)) {
-                Log.d(getClass().getSimpleName(), "User authenticated with remote server.");
-                startActivity(new Intent(this, AfterAuthActivity.class)); // Go to the secure content.
-                finish();
-            } else {
-                Toast.makeText(this, "Access Denied.", Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        this.username = null;
-    }
-
-    private boolean authenticatedWithServer(String username, byte[] message, byte[] signature) {
-        try {
-            return server.authenticate(username, message, signature);
-        } catch (ServerException e) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            return false;
-        }
-    }
-
-    private byte[] signMessage(Signature signature, byte[] message) {
-        try {
-            signature.update(message);
-            return signature.sign();
-        } catch (SignatureException e) {
-            return null;
-        }
-    }
-
-    @Override
     public void onAuthenticationFailed() {
-        this.username = null;
+        authenticationStopped();
         Toast.makeText(this, "Authentication Failed", Toast.LENGTH_SHORT).show();
     }
 }

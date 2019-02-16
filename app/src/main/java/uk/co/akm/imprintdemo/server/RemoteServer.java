@@ -6,7 +6,7 @@ public interface RemoteServer {
 
     void registerPublicKey(String username, PublicKey publicKey) throws ServerException;
 
-    byte[] getAuthenticationMessageToSign();
+    byte[] getAuthenticationMessageToSign(String username);
 
     boolean authenticate(String username, byte[] message, byte[] signature) throws ServerException;
 }

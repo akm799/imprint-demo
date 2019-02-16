@@ -11,11 +11,12 @@ import java.util.Map;
 import java.util.Random;
 
 public final class InMemoryRemoteServer implements RemoteServer {
-    private static final int MESSAGE_LENGTH = 256;
+    private static final int MESSAGE_LENGTH = 512;
     private static final String SIGNATURE_ALGORITHM = "SHA256withECDSA";
 
     private final Random random = new SecureRandom();
     private final Map<String, PublicKey> users = new HashMap<>();
+    private final Map<String, byte[]> messages = new HashMap<>();
 
     @Override
     public void registerPublicKey(String username, PublicKey publicKey) throws ServerException {
@@ -31,9 +32,15 @@ public final class InMemoryRemoteServer implements RemoteServer {
     }
 
     @Override
-    public byte[] getAuthenticationMessageToSign() {
+    public byte[] getAuthenticationMessageToSign(String username) {
+        if (!users.containsKey(username)) {
+            throw new ServerException("User '" + username + "' has not registered.");
+        }
+
         final byte[] message = new byte[MESSAGE_LENGTH];
         random.nextBytes(message);
+
+        messages.put(username, message);
 
         return message;
     }
@@ -41,6 +48,12 @@ public final class InMemoryRemoteServer implements RemoteServer {
     @Override
     public boolean authenticate(String username, byte[] message, byte[] signature) throws ServerException {
         checkArguments(username, message, signature);
+
+        final byte[] expectedMessage = messages.get(username);
+        if (notExpectedMessage(expectedMessage, message)) {
+            return false;
+        }
+
         final PublicKey key = users.get(username);
         if (key == null) {
             throw new ServerException("User '" + username + "' has not registered.");
@@ -61,6 +74,24 @@ public final class InMemoryRemoteServer implements RemoteServer {
         if (signature == null || signature.length == 0) {
             throw new ServerException("Missing authentication signature.");
         }
+    }
+
+    private boolean notExpectedMessage(byte[] expectedMessage, byte[] message) {
+        if (expectedMessage == null) {
+            return true;
+        }
+
+        if (expectedMessage.length != message.length) {
+            return true;
+        }
+
+        for (int i=0 ; i<message.length ; i++) {
+            if (expectedMessage[i] != message[i]) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean verifySignature(byte[] message, PublicKey key, byte[] signature) throws ServerException {

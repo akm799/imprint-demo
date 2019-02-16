@@ -3,6 +3,7 @@ package uk.co.akm.imprintdemo;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -25,6 +26,8 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
     private TextView authState;
     private EditText usernameText;
+
+    private String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +69,7 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     }
 
     private void authenticate(String username) {
+        this.username = username;
         authenticator.startAuthenticationForRemoteAuthentication(this, this);
     }
 
@@ -82,11 +86,13 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
     @Override
     public void onAuthenticationError(int errorCode, CharSequence errString) {
+        this.username = null;
         Toast.makeText(this, "Authentication Error\n" + errString, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
+        this.username = null;
         Toast.makeText(this, "Authentication Help\n" + helpString, Toast.LENGTH_LONG).show();
     }
 
@@ -100,11 +106,23 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
         if (signature == null) {
             Toast.makeText(this, "Could not sign server message.", Toast.LENGTH_LONG).show();
         } else {
-            if (server.authenticate(message, signature)) {
+            if (authenticatedWithServer(username, message, signature)) {
+                Log.d(getClass().getSimpleName(), "User authenticated with remote server.");
                 //TODO
             } else {
                 Toast.makeText(this, "Access Denied.", Toast.LENGTH_SHORT).show();
             }
+        }
+
+        this.username = null;
+    }
+
+    private boolean authenticatedWithServer(String username, byte[] message, byte[] signature) {
+        try {
+            return server.authenticate(username, message, signature);
+        } catch (ServerException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            return false;
         }
     }
 
@@ -119,6 +137,7 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
     @Override
     public void onAuthenticationFailed() {
+        this.username = null;
         Toast.makeText(this, "Authentication Failed", Toast.LENGTH_SHORT).show();
     }
 }

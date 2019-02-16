@@ -1,14 +1,18 @@
 package uk.co.akm.imprintdemo.server;
 
 
+import android.util.Log;
+
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Signature;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 public final class InMemoryRemoteServer implements RemoteServer {
     private static final int MESSAGE_LENGTH = 256;
+    private static final String SIGNATURE_ALGORITHM = "SHA256withECDSA";
 
     private final Random random = new SecureRandom();
     private final Map<String, PublicKey> users = new HashMap<>();
@@ -35,7 +39,41 @@ public final class InMemoryRemoteServer implements RemoteServer {
     }
 
     @Override
-    public boolean authenticate(byte[] message, byte[] signature) throws ServerException {
-        return false;
+    public boolean authenticate(String username, byte[] message, byte[] signature) throws ServerException {
+        checkArguments(username, message, signature);
+        final PublicKey key = users.get(username);
+        if (key == null) {
+            throw new ServerException("User '" + username + "' has not registered.");
+        }
+
+        return verifySignature(message, key, signature);
+    }
+
+    private void checkArguments(String username, byte[] message, byte[] signature) throws ServerException {
+        if (username == null || username.trim().isEmpty()) {
+            throw new ServerException("Missing username.");
+        }
+
+        if (message == null || message.length == 0) {
+            throw new ServerException("Missing authentication message.");
+        }
+
+        if (signature == null || signature.length == 0) {
+            throw new ServerException("Missing authentication signature.");
+        }
+    }
+
+    private boolean verifySignature(byte[] message, PublicKey key, byte[] signature) throws ServerException {
+        try {
+            final Signature verificationFunction = Signature.getInstance(SIGNATURE_ALGORITHM);
+
+            verificationFunction.initVerify(key);
+            verificationFunction.update(message);
+
+            return verificationFunction.verify(signature);
+        } catch (Exception e) {
+            Log.e(getClass().getSimpleName(), "Signature versification error.", e);
+            throw new ServerException("Signature versification error.");
+        }
     }
 }

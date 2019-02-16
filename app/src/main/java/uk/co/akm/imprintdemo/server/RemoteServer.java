@@ -8,5 +8,5 @@ public interface RemoteServer {
 
     byte[] getAuthenticationMessageToSign();
 
-    boolean authenticate(byte[] message, byte[] signature) throws ServerException;
+    boolean authenticate(String username, byte[] message, byte[] signature) throws ServerException;
 }

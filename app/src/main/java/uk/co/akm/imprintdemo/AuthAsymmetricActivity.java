@@ -1,5 +1,6 @@
 package uk.co.akm.imprintdemo;
 
+import android.content.Intent;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -108,7 +109,8 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
         } else {
             if (authenticatedWithServer(username, message, signature)) {
                 Log.d(getClass().getSimpleName(), "User authenticated with remote server.");
-                //TODO
+                startActivity(new Intent(this, AfterAuthActivity.class)); // Go to the secure content.
+                finish();
             } else {
                 Toast.makeText(this, "Access Denied.", Toast.LENGTH_SHORT).show();
             }

@@ -29,8 +29,7 @@ public final class InMemoryRemoteServer implements RemoteServer {
         registerPublicKey(username, publicKey);
     }
 
-    @Override
-    public void registerPublicKey(String username, PublicKey publicKey) throws ServerException {
+    private void registerPublicKey(String username, PublicKey publicKey) throws ServerException {
         if (username == null || username.trim().isEmpty()) {
             throw new ServerException("Missing username.");
         }

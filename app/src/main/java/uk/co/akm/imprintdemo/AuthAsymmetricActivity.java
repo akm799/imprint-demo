@@ -14,6 +14,8 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 
+import uk.co.akm.imprintdemo.key.KeySerializer;
+import uk.co.akm.imprintdemo.key.KeySerializerFactory;
 import uk.co.akm.imprintdemo.server.InMemoryRemoteServer;
 import uk.co.akm.imprintdemo.server.RemoteServer;
 import uk.co.akm.imprintdemo.server.ServerException;
@@ -23,6 +25,7 @@ import uk.co.akm.imprintdemo.utils.FingerprintLocalAuthenticator;
 
 public class AuthAsymmetricActivity extends AppCompatActivity implements AuthenticationListener {
     private final RemoteServer server = new InMemoryRemoteServer();
+    private final KeySerializer keySerializer = KeySerializerFactory.instance();
     private final FingerprintLocalAuthenticator authenticator = FingerprintAuthenticatorFactory.localAuthenticatorInstance();
 
     private TextView authState;
@@ -50,9 +53,10 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
     private void register(String username) {
         final PublicKey key = authenticator.generateKeyPairForRemoteAuthentication();
+        final String serializedKey = keySerializer.serialize(key);
 
         try {
-            server.registerPublicKey(username, key);
+            server.registerPublicKey(username, serializedKey);
             Toast.makeText(this, "User '" + username + "' registered.", Toast.LENGTH_SHORT).show();
         } catch (ServerException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();

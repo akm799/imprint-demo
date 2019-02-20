@@ -1,10 +1,7 @@
 package uk.co.akm.imprintdemo.server;
 
-import java.security.PublicKey;
 
 public interface RemoteServer {
-
-    void registerPublicKey(String username, PublicKey publicKey) throws ServerException;
 
     void registerPublicKey(String username, String publicKeyData) throws ServerException;
 

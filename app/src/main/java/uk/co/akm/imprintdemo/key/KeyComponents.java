@@ -1,27 +1,25 @@
 package uk.co.akm.imprintdemo.key;
 
-import java.math.BigInteger;
 
-class KeyComponents {
-    private final String SEPARATOR_INDEX = "\\|";
-    private final int FIRST_INDEX = 0;
-    private final int SECOND_INDEX = 1;
-    private final int NUMBER_OF_PARTS = 2;
-
-    final BigInteger first;
-    final BigInteger second;
+final class KeyComponents implements KeySerializerConstants {
+    final String algorithm;
+    final String format;
+    final String data;
 
     KeyComponents(String serializedKey) {
-        final String[] parts = serializedKey.split(SEPARATOR_INDEX);
-        if (parts.length != NUMBER_OF_PARTS) {
-            throw new KeySerializationException("Cannot deserialize key. Serilized data must comply with the format: [big_integer_1]|[big_integer_2]");
-        }
-
         try {
-            first = new BigInteger(parts[FIRST_INDEX]);
-            second = new BigInteger(parts[SECOND_INDEX]);
+            final int sep1 = serializedKey.indexOf(SEPARATOR, 0);
+            final int sep2 = serializedKey.indexOf(SEPARATOR, sep1 + 1);
+
+            algorithm = serializedKey.substring(0, sep1);
+            format = serializedKey.substring(sep1 + 1, sep2);
+            data = serializedKey.substring(sep2 + 1);
+
+            if (!KEY_ALGORITHMS.contains(algorithm)) {
+                throw new KeySerializationException("Unsupported public key algorithm: '" + algorithm + "'.");
+            }
         } catch (Exception e) {
-            throw new KeySerializationException("Cannot deserialize key with component 1 '" + parts[FIRST_INDEX] + "' and component 2 '" + parts[SECOND_INDEX] + "'.");
+            throw new KeySerializationException("Invalid serialized public key format.", e);
         }
     }
 }

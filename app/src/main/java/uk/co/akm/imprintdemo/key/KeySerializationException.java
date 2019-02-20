@@ -1,9 +1,13 @@
 package uk.co.akm.imprintdemo.key;
 
 
-public class KeySerializationException extends RuntimeException {
+final class KeySerializationException extends RuntimeException {
 
     KeySerializationException(String message) {
         super(message);
+    }
+
+    KeySerializationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

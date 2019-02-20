@@ -35,7 +35,7 @@ final class KeySerializerImpl implements KeySerializer, KeySerializerConstants {
 
     private void checkAlgorithmAndFormat(String algorithm, String format) {
         if (!keySerializers.containsKey(algorithm)) {
-            throw new KeySerializationException("Unsupported public key algorithm " + algorithm + ". The only algorithms supported are: " + supportedAlgorithms() + ".");
+            throw KeySerializationException.unsupportedAlgorithmInstance(algorithm);
         }
 
         if (!X509KeySerializer.X_509.equals(format)) {

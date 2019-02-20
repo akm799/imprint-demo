@@ -16,7 +16,7 @@ final class KeyComponents implements KeySerializerConstants {
             data = serializedKey.substring(sep2 + 1);
 
             if (!KEY_ALGORITHMS.contains(algorithm)) {
-                throw new KeySerializationException("Unsupported public key algorithm: '" + algorithm + "'.");
+                throw KeySerializationException.unsupportedAlgorithmInstance(algorithm);
             }
         } catch (Exception e) {
             throw new KeySerializationException("Invalid serialized public key format.", e);

@@ -2,6 +2,7 @@ package uk.co.akm.imprintdemo.key;
 
 import java.security.PublicKey;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -34,11 +35,24 @@ final class KeySerializerImpl implements KeySerializer, KeySerializerConstants {
 
     private void checkAlgorithmAndFormat(String algorithm, String format) {
         if (!keySerializers.containsKey(algorithm)) {
-            throw new KeySerializationException("Unsupported public key algorithm " + algorithm + ".");
+            throw new KeySerializationException("Unsupported public key algorithm " + algorithm + ". The only algorithms supported are: " + supportedAlgorithms() + ".");
         }
 
         if (!X509KeySerializer.X_509.equals(format)) {
             throw new KeySerializationException("Unsupported public key encoding format " + format + ". Only the " + X509KeySerializer.X_509 + " format is supported.");
         }
+    }
+
+    private String supportedAlgorithms() {
+        final StringBuilder sb = new StringBuilder();
+        final Iterator<String> algorithms = keySerializers.keySet().iterator();
+        while (algorithms.hasNext()) {
+            sb.append(algorithms.next());
+            if (algorithms.hasNext()) {
+                sb.append(", ");
+            }
+        }
+
+        return sb.toString();
     }
 }

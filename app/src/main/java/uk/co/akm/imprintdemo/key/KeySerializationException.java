@@ -3,7 +3,7 @@ package uk.co.akm.imprintdemo.key;
 
 import java.util.Iterator;
 
-final class KeySerializationException extends RuntimeException {
+public final class KeySerializationException extends RuntimeException {
 
     static KeySerializationException unsupportedAlgorithmInstance(String algorithm) {
         final String message = "Unsupported public key algorithm '" + algorithm + "'. The only algorithms supported are: " + supportedAlgorithms() + ".";

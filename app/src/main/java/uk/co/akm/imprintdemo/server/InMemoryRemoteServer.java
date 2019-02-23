@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import uk.co.akm.imprintdemo.key.KeySerializationException;
 import uk.co.akm.imprintdemo.key.KeySerializer;
 import uk.co.akm.imprintdemo.key.KeySerializerFactory;
 
@@ -25,8 +26,12 @@ public final class InMemoryRemoteServer implements RemoteServer {
 
     @Override
     public void registerPublicKey(String username, String publicKeyData) throws ServerException {
-        final PublicKey publicKey = keySerializer.deserialize(publicKeyData);
-        registerPublicKey(username, publicKey);
+        try {
+            final PublicKey publicKey = keySerializer.deserialize(publicKeyData);
+            registerPublicKey(username, publicKey);
+        } catch (KeySerializationException kse) {
+            throw new ServerException("Public key deserialization error.");
+        }
     }
 
     private void registerPublicKey(String username, PublicKey publicKey) throws ServerException {

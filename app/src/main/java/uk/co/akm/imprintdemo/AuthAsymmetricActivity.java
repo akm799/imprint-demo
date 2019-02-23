@@ -14,6 +14,7 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 
+import uk.co.akm.imprintdemo.key.KeySerializationException;
 import uk.co.akm.imprintdemo.key.KeySerializer;
 import uk.co.akm.imprintdemo.key.KeySerializerFactory;
 import uk.co.akm.imprintdemo.server.InMemoryRemoteServer;
@@ -52,14 +53,31 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     }
 
     private void register(String username) {
-        final PublicKey key = authenticator.generateKeyPairForRemoteAuthentication();
-        final String serializedKey = keySerializer.serialize(key);
+        final String serializedKey = generateKeyPairAndSerializePulbicKey();
 
+        if (serializedKey == null) {
+            Toast.makeText(this, "Key generation or serialization error.", Toast.LENGTH_SHORT).show();
+        } else {
+            try {
+                server.registerPublicKey(username, serializedKey);
+                Toast.makeText(this, "User '" + username + "' registered.", Toast.LENGTH_SHORT).show();
+            } catch (ServerException e) {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private String generateKeyPairAndSerializePulbicKey() {
         try {
-            server.registerPublicKey(username, serializedKey);
-            Toast.makeText(this, "User '" + username + "' registered.", Toast.LENGTH_SHORT).show();
-        } catch (ServerException e) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            final PublicKey key = authenticator.generateKeyPairForRemoteAuthentication();
+
+            return keySerializer.serialize(key);
+        } catch (KeySerializationException kse) {
+            Log.e(getClass().getSimpleName(), "Key serialization error.", kse);
+            return null;
+        } catch (Exception e) {
+            Log.e(getClass().getSimpleName(), "Key generation error.", e);
+            return null;
         }
     }
 

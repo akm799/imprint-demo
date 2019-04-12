@@ -24,6 +24,10 @@ import uk.co.akm.imprintdemo.utils.AuthenticationListener;
 import uk.co.akm.imprintdemo.utils.FingerprintAuthenticatorFactory;
 import uk.co.akm.imprintdemo.utils.FingerprintLocalAuthenticator;
 
+/**
+ * Activity for registering users that will use asymmetric encryption to log in as well as for logging
+ * in registered users (using the aforementioned asymmetric encryption).
+ */
 public class AuthAsymmetricActivity extends AppCompatActivity implements AuthenticationListener {
     private final RemoteServer server = new InMemoryRemoteServer();
     private final KeySerializer keySerializer = KeySerializerFactory.instance();
@@ -53,21 +57,21 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     }
 
     private void register(String username) {
-        final String serializedKey = generateKeyPairAndSerializePulbicKey();
+        final String serializedKey = generateKeyPairAndSerializePublicKey();
 
         if (serializedKey == null) {
             Toast.makeText(this, "Key generation or serialization error.", Toast.LENGTH_SHORT).show();
         } else {
             try {
                 server.registerPublicKey(username, serializedKey);
-                Toast.makeText(this, "User '" + username + "' registered.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "User '" + username + "' registered successfully.", Toast.LENGTH_SHORT).show();
             } catch (ServerException e) {
                 Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private String generateKeyPairAndSerializePulbicKey() {
+    private String generateKeyPairAndSerializePublicKey() {
         try {
             final PublicKey key = authenticator.generateKeyPairForRemoteAuthentication();
 
@@ -187,7 +191,7 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
     @Override
     public void onAuthenticationFailed() {
-        authenticationStopped();
+        stopAuthentication(); // After failure we need to cancel the authentication process completely, because our (private) key operation authorisation was only for this failed effort. For the next try we need a new authorisation.
         Toast.makeText(this, "Authentication Failed", Toast.LENGTH_SHORT).show();
     }
 }

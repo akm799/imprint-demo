@@ -8,7 +8,7 @@ import java.security.PublicKey;
  * This interface contains all methods required by the application to use local fingerprint
  * authentication.
  *
- * Created by thanosmavroidis on 18/09/2016.
+ * Created by Thanos Mavroidis on 18/09/2016.
  */
 public interface FingerprintLocalAuthenticator {
     /**
@@ -92,7 +92,7 @@ public interface FingerprintLocalAuthenticator {
     boolean startAuthenticationForRemoteAuthentication(Context context, AuthenticationListener listener);
 
     /**
-     * Stops the (already running) fingerprint authetication process. Usually called, from the
+     * Stops the (already running) fingerprint authentication process. Usually called, from the
      * onPause() method of the caller activity or fragment or when the process is cancelled by
      * the user.
      */

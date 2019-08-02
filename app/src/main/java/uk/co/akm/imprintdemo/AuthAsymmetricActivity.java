@@ -14,6 +14,7 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 
+import uk.co.akm.imprintdemo.error.UselessKeyException;
 import uk.co.akm.imprintdemo.key.KeySerializationException;
 import uk.co.akm.imprintdemo.key.KeySerializer;
 import uk.co.akm.imprintdemo.key.KeySerializerFactory;
@@ -97,7 +98,12 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
     private void authenticate(String username) {
         this.username = username;
-        authenticator.startAuthenticationForRemoteAuthentication(this, this);
+
+        try {
+            authenticator.startAuthenticationForRemoteAuthentication(this, this);
+        } catch (UselessKeyException uke) {
+            Toast.makeText(this, "Please reset and start again.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Authentication process cancelled manually by the user.

@@ -1,7 +1,9 @@
 package uk.co.akm.imprintdemo.utils;
 
 import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
+import android.util.Log;
 
 import java.security.InvalidKeyException;
 import java.security.KeyPairGenerator;
@@ -13,12 +15,16 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.spec.ECGenParameterSpec;
 
+import uk.co.akm.imprintdemo.error.UselessKeyException;
+
 /**
  * https://android-developers.googleblog.com/2015/10/new-in-android-samples-authenticating.html
  * 
- * Created by thanosmavroidis on 02/11/2019.
+ * Created by Thanos Mavroidis on 02/11/2019.
  */
 final class KeyPairFunctions extends KeyStoreProvider {
+    private static final String TAG = "KeyPairFunctions";
+
     private static final String SIGNATURE_ALGORITHM = "SHA256withECDSA";
     private static final String KEY_PAIR_NAME_PREFIX = "local_fingerprint_verification_key_pair.asymmetric.";
 
@@ -77,6 +83,9 @@ final class KeyPairFunctions extends KeyStoreProvider {
             return signature;
         } catch (NoSuchAlgorithmException nsae) {
             throw new RuntimeException("Failed to obtain a signature instance for algorithm: " + SIGNATURE_ALGORITHM, nsae);
+        } catch (KeyPermanentlyInvalidatedException kpie) {
+            Log.d(TAG, "Failed to obtain a signature instance and initialize it with the private key from the key pair: " + keyPairName + " because the key pair has been permanently invalidated.");
+            throw new UselessKeyException(kpie);
         } catch (InvalidKeyException ike) {
             throw new RuntimeException("Failed to obtain a signature instance and initialize it with the private key from the key pair: " + keyPairName, ike);
         }
@@ -89,6 +98,14 @@ final class KeyPairFunctions extends KeyStoreProvider {
             return (PrivateKey) keyStore.getKey(keyPairName, null);
         } catch (Exception e) {
             throw new RuntimeException("Failed to obtain the private key from key-pair: " + keyPairName, e);
+        }
+    }
+
+    void deleteKeyPair(KeyStore keyStore) {
+        try {
+            keyStore.deleteEntry(keyPairName);
+        } catch (KeyStoreException kse) {
+            throw new RuntimeException("Failed to delete key pair: " + keyPairName);
         }
     }
 }

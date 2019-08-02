@@ -97,4 +97,11 @@ public interface FingerprintLocalAuthenticator {
      * the user.
      */
     void stopAuthentication();
+
+    /**
+     * Deletes the key-pair used, so that a brand new key-pair can be generated and used in the future
+     * operations. This is useful in case of errors that indicate that the key-pair used has been
+     * permanently invalidated.
+     */
+    void reset();
 }

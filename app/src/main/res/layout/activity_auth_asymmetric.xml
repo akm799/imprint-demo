@@ -29,6 +29,16 @@
         android:onClick="onRegister"/>
 
     <Button
+        android:id="@+id/reset_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignBottom="@id/register_btn"
+        android:layout_marginRight="20dp"
+        android:text="Reset"
+        android:onClick="onReset"/>
+
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"

@@ -16,7 +16,7 @@ import java.security.Signature;
 import javax.crypto.Cipher;
 
 /**
- * Created by thanosmavroidis on 18/09/2016.
+ * Created by Thanos Mavroidis on 18/09/2016.
  */
 public final class BasicFingerprintLocalAuthenticator extends FingerprintManager.AuthenticationCallback implements FingerprintLocalAuthenticator {
     private static final String TAG = BasicFingerprintLocalAuthenticator.class.getSimpleName();
@@ -152,5 +152,10 @@ public final class BasicFingerprintLocalAuthenticator extends FingerprintManager
         if (listener != null) {
             listener.onAuthenticationSucceeded(result);
         }
+    }
+
+    @Override
+    public void reset() {
+        keyPairFunctions.deleteKeyPair();
     }
 }

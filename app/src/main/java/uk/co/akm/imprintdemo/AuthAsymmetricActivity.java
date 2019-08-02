@@ -28,6 +28,8 @@ import uk.co.akm.imprintdemo.utils.FingerprintLocalAuthenticator;
 /**
  * Activity for registering users that will use asymmetric encryption to log in as well as for logging
  * in registered users (using the aforementioned asymmetric encryption).
+ *
+ * Created by Thanos Mavroidis.
  */
 public class AuthAsymmetricActivity extends AppCompatActivity implements AuthenticationListener {
     private final RemoteServer server = new InMemoryRemoteServer();
@@ -46,6 +48,11 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
         authState = (TextView) findViewById(R.id.auth_state);
         usernameText = (EditText) findViewById(R.id.username_text);
+    }
+
+    public void onReset(View view) {
+        authenticator.reset();
+        Toast.makeText(this, "Reset complete.", Toast.LENGTH_SHORT).show();
     }
 
     public void onRegister(View view) {

@@ -43,6 +43,7 @@ final class KeyPairFunctions extends KeyStoreProvider {
 
     private void generateKeyPairIfNoneExists(KeyStore keyStore) {
         if (keyNotGenerated(keyStore, keyPairName)) {
+            Log.d(TAG, "No existing key-pair found. Will generate a new one.");
             generateKeyPair(keyPairName);
         }
     }
@@ -84,10 +85,10 @@ final class KeyPairFunctions extends KeyStoreProvider {
         } catch (NoSuchAlgorithmException nsae) {
             throw new RuntimeException("Failed to obtain a signature instance for algorithm: " + SIGNATURE_ALGORITHM, nsae);
         } catch (KeyPermanentlyInvalidatedException kpie) {
-            Log.d(TAG, "Failed to obtain a signature instance and initialize it with the private key from the key pair: " + keyPairName + " because the key pair has been permanently invalidated.");
+            Log.d(TAG, "Failed to obtain a signature instance and initialize it with the private key from the key-pair: " + keyPairName + " because the key pair has been permanently invalidated.");
             throw new UselessKeyException(kpie);
         } catch (InvalidKeyException ike) {
-            throw new RuntimeException("Failed to obtain a signature instance and initialize it with the private key from the key pair: " + keyPairName, ike);
+            throw new RuntimeException("Failed to obtain a signature instance and initialize it with the private key from the key-pair: " + keyPairName, ike);
         }
     }
 
@@ -101,11 +102,13 @@ final class KeyPairFunctions extends KeyStoreProvider {
         }
     }
 
-    void deleteKeyPair(KeyStore keyStore) {
+    void deleteKeyPair() {
+        final KeyStore keyStore = loadKeyStore();
+
         try {
             keyStore.deleteEntry(keyPairName);
         } catch (KeyStoreException kse) {
-            throw new RuntimeException("Failed to delete key pair: " + keyPairName);
+            throw new RuntimeException("Failed to delete key-pair: " + keyPairName, kse);
         }
     }
 }

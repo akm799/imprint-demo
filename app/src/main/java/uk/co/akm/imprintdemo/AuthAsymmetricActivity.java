@@ -36,8 +36,13 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     private final KeySerializer keySerializer = KeySerializerFactory.instance();
     private final FingerprintLocalAuthenticator authenticator = FingerprintAuthenticatorFactory.localAuthenticatorInstance();
 
+    private EditText usernameRegistrationText;
+    private EditText usernameAuthenticationText;
+
     private TextView authState;
-    private EditText usernameText;
+    private View authAction;
+    private View authCancelAction;
+    private View fingerprintImageView;
 
     private String username;
 
@@ -46,8 +51,13 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth_asymmetric);
 
-        authState = (TextView) findViewById(R.id.auth_state);
-        usernameText = (EditText) findViewById(R.id.username_text);
+        usernameRegistrationText = (EditText) findViewById(R.id.auth_asymmetric_registration_username);
+        usernameAuthenticationText = (EditText) findViewById(R.id.auth_asymmetric_authentication_username);
+
+        authState = (TextView) findViewById(R.id.auth_asymmetric_auth_prompt);
+        authAction = findViewById(R.id.auth_asymmetric_authentication_btn);
+        authCancelAction = findViewById(R.id.auth_asymmetric_authentication_cancel_btn);
+        fingerprintImageView = findViewById(R.id.auth_asymmetric_fingerprint_image);
     }
 
     public void onReset(View view) {
@@ -56,7 +66,7 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     }
 
     public void onRegister(View view) {
-        final String username = usernameText.getText().toString().trim();
+        final String username = usernameRegistrationText.getText().toString().trim();
         if (username.isEmpty()) {
             Toast.makeText(this, "Please provide a username.", Toast.LENGTH_SHORT).show();
         } else {
@@ -94,13 +104,21 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     }
 
     public void onAuthenticate(View view) {
-        final String username = usernameText.getText().toString().trim();
+        final String username = usernameAuthenticationText.getText().toString().trim();
         if (username.isEmpty()) {
             Toast.makeText(this, "Please provide a username.", Toast.LENGTH_SHORT).show();
         } else {
-            authState.setVisibility(View.VISIBLE);
+            setScreenToAuthenticationMode();
             authenticate(username);
         }
+    }
+
+    private void setScreenToAuthenticationMode() {
+        authAction.setVisibility(View.INVISIBLE);
+
+        authState.setVisibility(View.VISIBLE);
+        fingerprintImageView.setVisibility(View.VISIBLE);
+        authCancelAction.setVisibility(View.VISIBLE);
     }
 
     private void authenticate(String username) {
@@ -116,17 +134,32 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     // Authentication process cancelled manually by the user.
     public void onCancel(View view) {
         stopAuthentication();
-        finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        try {
+            authenticator.stopAuthentication();
+        } finally {
+            super.onBackPressed();
+        }
     }
 
     private void stopAuthentication() {
-        authenticator.stopAuthentication();
         authenticationStopped();
     }
 
     private void authenticationStopped() {
         username = null;
+        setScreenOffAuthenticationMode();
+    }
+
+    private void setScreenOffAuthenticationMode() {
+        authAction.setVisibility(View.VISIBLE);
+
         authState.setVisibility(View.INVISIBLE);
+        fingerprintImageView.setVisibility(View.INVISIBLE);
+        authCancelAction.setVisibility(View.INVISIBLE);
     }
 
     @Override

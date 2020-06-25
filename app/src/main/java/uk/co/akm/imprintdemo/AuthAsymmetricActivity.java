@@ -146,10 +146,11 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     }
 
     private void stopAuthentication() {
-        authenticationStopped();
+        authenticator.stopAuthentication();
+        onAuthenticationStopped();
     }
 
-    private void authenticationStopped() {
+    private void onAuthenticationStopped() {
         username = null;
         setScreenOffAuthenticationMode();
     }
@@ -190,6 +191,7 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
         if (signature == null) {
             Toast.makeText(this, "Could not sign server message.", Toast.LENGTH_LONG).show();
+            stopAuthentication();
         } else {
             authenticatedWithServer(username, message, signature);
         }
@@ -225,13 +227,13 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
 
     @Override
     public void onAuthenticationError(int errorCode, CharSequence errString) {
-        authenticationStopped();
+        onAuthenticationStopped();
         Toast.makeText(this, "Authentication Error\n" + errString, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-        authenticationStopped();
+        onAuthenticationStopped();
         Toast.makeText(this, "Authentication Help\n" + helpString, Toast.LENGTH_LONG).show();
     }
 

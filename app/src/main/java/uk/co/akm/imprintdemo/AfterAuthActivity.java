@@ -15,6 +15,15 @@ public class AfterAuthActivity extends AppCompatActivity {
     private static final String CRYPTO_TEXT_KEY = "crypto.result.text.key";
     private static final String CRYPTO_ENCRYPT_FUNCTION_KEY = "crypto.result.function.key";
 
+    private static final String AUTHORISED_USERNAME_KEY = "authorised.username.key";
+
+    static void startAfterAuthActivity(Context context, String username) {
+        final Intent intent = new Intent(context, AfterAuthActivity.class);
+        intent.putExtra(AUTHORISED_USERNAME_KEY, username);
+
+        context.startActivity(intent);
+    }
+
     static void startAfterAuthActivity(Context context, boolean encrypted, String cryptoText) {
         final Intent intent = new Intent(context, AfterAuthActivity.class);
         intent.putExtra(CRYPTO_ENCRYPT_FUNCTION_KEY, encrypted);
@@ -31,6 +40,8 @@ public class AfterAuthActivity extends AppCompatActivity {
         final Intent intent = getIntent();
         if (hasMessage(intent)) {
             showMessage(intent);
+        } else if (hasUsername(intent)) {
+            showWelcomeMessage(intent);
         }
     }
 
@@ -53,5 +64,15 @@ public class AfterAuthActivity extends AppCompatActivity {
         } else {
             authResult.setText("Authentication successful.\n\nYour stored, encrypted text was decrypted as:\n\n" + cryptoText);
         }
+    }
+
+    private boolean hasUsername(Intent intent) {
+        return intent.hasExtra(AUTHORISED_USERNAME_KEY);
+    }
+
+    private void showWelcomeMessage(Intent intent) {
+        final String username = intent.getStringExtra(AUTHORISED_USERNAME_KEY);
+        final TextView authResult = (TextView)findViewById(R.id.auth_result);
+        authResult.setText("Authentication successful.\n\nWelcome " + username + "!");
     }
 }

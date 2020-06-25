@@ -167,13 +167,14 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
         authState.setVisibility(View.INVISIBLE);
         authenticatedWithServer(result.getCryptoObject().getSignature());
-        this.username = null;
     }
 
     private void authenticatedWithServer(Signature signatureFunction) {
         final byte[] message = getAuthenticationMessageFromServer(username);
         if (message != null) {
             authenticatedWithServer(username, message, signatureFunction);
+        } else {
+            stopAuthentication();
         }
     }
 
@@ -212,16 +213,19 @@ public class AuthAsymmetricActivity extends AppCompatActivity implements Authent
             if (server.authenticate(username, message, signature)) {
                 onRemoteAuthenticationComplete();
             } else {
+                this.username = null;
                 Toast.makeText(this, "Access Denied.", Toast.LENGTH_SHORT).show();
             }
         } catch (ServerException e) {
+            this.username = null;
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void onRemoteAuthenticationComplete() {
         Log.d(getClass().getSimpleName(), "User authenticated with remote server.");
-        startActivity(new Intent(this, AfterAuthActivity.class)); // Go to the secure content.
+        AfterAuthActivity.startAfterAuthActivity(this, username); // Go to the secure content.
+        username = null;
         finish();
     }
 
